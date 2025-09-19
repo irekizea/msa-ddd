@@ -67,4 +67,3 @@ apps/**/generated/prisma/
 docker-data/
 **/.env.docker
 tmp/
-
