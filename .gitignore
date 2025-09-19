@@ -1,0 +1,69 @@
+# --- Node / pnpm monorepo ---
+node_modules/
+**/node_modules/
+.pnpm-store/
+
+# --- Builds / artifacts ---
+dist/
+**/dist/
+build/
+**/build/
+*.tsbuildinfo
+**/*.tsbuildinfo
+
+# --- Logs ---
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# --- Tests / coverage ---
+coverage/
+coverage-e2e/
+.nyc_output/
+**/.jest-cache/
+**/.jest/
+
+# --- Env / secrets (keep examples) ---
+.env
+.env.*
+!*.env.example
+**/.env
+**/.env.*
+!**/.env.example
+
+# --- IDE / OS ---
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.DS_Store
+Thumbs.db
+
+# --- Prisma (generated clients; adjust paths if you changed generator output) ---
+# If you output to prisma/generated/{read,write}
+prisma/generated/
+apps/**/prisma/generated/
+
+# If you output to generated/prisma (Data Proxy/Accelerate, etc.)
+generated/prisma/
+apps/**/generated/prisma/
+
+# --- SQLite (in case any devs use it locally) ---
+*.db
+*.db-journal
+
+# --- Tool caches / misc ---
+.eslintcache
+.turbo/
+.parcel-cache/
+.cache/
+
+# --- Docker (optional local stuff) ---
+docker-data/
+**/.env.docker
+tmp/

@@ -1,0 +1,95 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------- Enums ----------
+enum OrderStatus {
+  CREATED
+  PAID
+  CANCELLED
+}
+
+enum Currency {
+  KRW
+  USD
+  EUR
+}
+
+// ---------- Domain Models ----------
+model Order {
+  id            String       @id @default(uuid())
+  customerId    String
+  status        OrderStatus  @default(CREATED)
+  currency      Currency     @default(KRW)
+  totalAmount   Decimal      @db.Decimal(12, 2)
+  version       Int          @default(1) // optimistic concurrency (check/increment in code)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  items         OrderItem[]
+  // read-model joins live elsewhere; Order stays pure domain
+
+  @@index([customerId])
+  @@index([status, createdAt])
+}
+
+model OrderItem {
+  id         String  @id @default(uuid())
+  orderId    String
+  productId  String
+  quantity   Int
+  unitPrice  Decimal @db.Decimal(12, 2)
+  lineTotal  Decimal @db.Decimal(12, 2)
+
+  order      Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@unique([orderId, productId]) // prevent duplicate product lines
+  @@index([productId])
+}
+
+// ---------- Reliable Messaging: Outbox (per service) ----------
+// Use this table to atomically persist domain changes + an event record in the same tx.
+// A background publisher reads 'status=PENDING', sends to Kafka, then marks as SENT.
+model OutboxEvent {
+  id             String    @id @default(uuid())
+  aggregateType  String    // e.g., "Order"
+  aggregateId    String    // e.g., Order.id
+  eventType      String    // e.g., "OrderCreated", "OrderCancelled"
+  payload        Json      @db.JsonB
+  occurredAt     DateTime  @default(now())
+  status         String    @default("PENDING") // PENDING | SENT | ERROR
+  errorMessage   String?
+  attempts       Int       @default(0)
+
+  // optional ordering/version if you publish in strict order
+  eventVersion   Int       @default(1)
+
+  @@index([aggregateType, aggregateId])
+  @@index([status, occurredAt])
+}
+
+// ---------- Optional: Local Projection / Read Model ----------
+// If you want to show Payment status together with an Order quickly,
+// maintain a denormalized view fed by events from Payment + Order.
+// This is NOT part of the write model; it’s a query-optimized table.
+model OrderPaymentView {
+  orderId            String   @id
+  orderStatus        OrderStatus
+  paymentStatus      String?  // PENDING | AUTHORIZED | CAPTURED | FAILED | REFUNDED
+  lastPaymentVersion Int      @default(0)
+  updatedAt          DateTime @updatedAt
+
+  @@index([orderStatus])
+}
