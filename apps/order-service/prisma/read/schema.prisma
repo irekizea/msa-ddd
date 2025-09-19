@@ -1,0 +1,39 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/read"   // separate client output
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("READ_DATABASE_URL")
+}
+
+enum OrderStatus {
+  CREATED
+  PAID
+  CANCELLED
+}
+
+/**
+ * Denormalized view for UI/queries. Only projectors write here.
+ * Reads are served from here (fast, no joins/cross-service calls).
+ */
+model OrderPaymentView {
+  orderId            String      @id
+  orderStatus        OrderStatus
+  paymentStatus      String?
+  lastOrderVersion   Int         @default(0)
+  lastPaymentVersion Int         @default(0)
+  updatedAt          DateTime    @updatedAt
+
+  @@index([orderStatus])
+}
+
+/** Idempotency ledger: remember which events we applied */
+model ProcessedEvent {
+  id        String   @id         // eventId from producer (outbox)
+  topic     String
+  key       String?
+  createdAt DateTime @default(now())
+  @@index([topic, key])
+}
