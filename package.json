@@ -1,0 +1,15 @@
+{
+  "private": true,
+  "name": "msaddd-monorepo",
+  "scripts": {
+    "build": "pnpm -r build"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.36.0",
+    "@msaddd/eslint-config": "workspace:*",
+    "eslint": "^9.36.0",
+    "globals": "^15.15.0",
+    "typescript": "^5.9.2",
+    "typescript-eslint": "^8.44.1"
+  }
+}
