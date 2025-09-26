@@ -1,9 +1,10 @@
 {
   "private": true,
-  "name": "msaddd-monorepo",
-  "scripts": {
-    "build": "pnpm -r build"
-  },
+  "name": "msa-ddd",
+  "workspaces": [
+    "apps/*",
+    "libs/*"
+  ],
   "devDependencies": {
     "@eslint/js": "^9.36.0",
     "@msaddd/eslint-config": "workspace:*",
