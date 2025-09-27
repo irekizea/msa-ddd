@@ -1,7 +1,9 @@
+
 🚀 MSA DDD/CQRS — NestJS + Prisma + Kafka
 
 Build microservice-ready backends with:
 NestJS ⚡ DDD + CQRS 🧠 Prisma 🗄️ Outbox 📬 Kafka/Redpanda 🧵 pnpm 📦
+
 
 This starter uses one Nest app (order-service) containing:
 
@@ -10,6 +12,7 @@ This starter uses one Nest app (order-service) containing:
 🔎 Read model: projectors (Kafka consumers) + read API / query DB
 
 You can split read/write into separate services later — start simple, scale when needed.
+
 
 🔭 At a Glance
 
@@ -24,6 +27,7 @@ Messaging: Kafka/Redpanda
 Pattern: DDD + CQRS + Hexagonal + Outbox
 
 Package Manager: pnpm (Corepack recommended)
+
 
 🧩 Architecture
 flowchart LR
@@ -58,6 +62,7 @@ Legend
 📬 Outbox: reliable “state change → event” guarantee
 
 🧵 Kafka: async events between services
+
 
 📁 Repository Layout
 root/
@@ -102,6 +107,7 @@ pnpm -v
    pnpm install
 
 3) Environment Vars (apps/order-service/.env)
+
 # HTTP + Kafka
 PORT=3001
 KAFKA_BROKER=localhost:9092
@@ -117,10 +123,9 @@ READ_DIRECT_URL="postgresql://postgres:postgres@localhost:5432/app?schema=order_
 # Optional (safer diffs)
 SHADOW_DATABASE_URL="postgresql://postgres:postgres@localhost:5432/app_shadow"
 
-
 💡 If you use Prisma Accelerate (prisma://…) for runtime, keep the *_DIRECT_URL as postgresql://… — migrate uses directUrl.
 
-4) Generate Clients & Run Migrations
+4) Generate Clients & Run Migrations 
 # from apps/order-service
 
 # ✍️ write model
@@ -138,6 +143,7 @@ pnpm prisma migrate dev --name init_read --schema prisma/read/schema.prisma
 HTTP: http://localhost:3001
 
 Kafka consumer group: order-service
+
 
 🧱 Database & Migrations (DDL)
 
@@ -158,6 +164,7 @@ pnpm prisma migrate dev --name <change> --schema prisma/read/schema.prisma
 
 CREATE SCHEMA IF NOT EXISTS order_write;
 CREATE SCHEMA IF NOT EXISTS order_query;
+
 
 🧵 Kafka Topics & Event Contracts
 
