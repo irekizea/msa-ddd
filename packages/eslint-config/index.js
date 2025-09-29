@@ -1,88 +1,78 @@
 // packages/eslint-config/index.js
-import js from "@eslint/js";
-import tseslint from "typescript-eslint";
-import globals from "globals";
+// ESM (type: module)
 
-/**
- * Base flat config for the whole monorepo.
- * Usage: in root eslint.config.js -> `import base from "@msaddd/eslint-config"; export default base();`
- */
-export default function base() {
-    return [
-        // Global ignores
-        {
-            ignores: [
-                "**/node_modules/**",
-                "**/dist/**",
-                "**/build/**",
-                "**/.next/**",
-                "**/coverage/**"
-            ]
-        },
+import js from '@eslint/js';
+import ts from 'typescript-eslint';
+import globals from 'globals';
 
-        // JS recommended
-        js.configs.recommended,
+// Optional peer: eslint-config-prettier
+let eslintConfigPrettier;
+try {
+    eslintConfigPrettier = (await import('eslint-config-prettier')).default;
+} catch {
+    // not installed -> skip
+}
 
-        // TypeScript (type-checked)
-        ...tseslint.config({
+function typedTsBlock(projectGlobs) {
+    return {
+        files: ['**/*.ts', '**/*.tsx'],
+        languageOptions: {
+            parser: ts.parser,
             parserOptions: {
-                // IMPORTANT: resolve tsconfig from the *consumer* repo, not from this package location
-                project: true,
+                project: projectGlobs,
+                // run from each workspace; works in monorepos
                 tsconfigRootDir: process.cwd()
             },
-            extends: [
-                ...tseslint.configs.strictTypeChecked,
-                ...tseslint.configs.stylisticTypeChecked
-            ],
-            rules: {
-                "@typescript-eslint/consistent-type-imports": "warn",
-                "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern: "^_" }]
-            }
-        }),
-
-        // Language options for all code
-        {
-            files: ["**/*.{ts,tsx,js,jsx}"],
-            languageOptions: {
-                ecmaVersion: "latest",
-                sourceType: "module",
-                globals: {
-                    ...globals.es2024
-                }
-            }
+            globals: { ...globals.node, ...globals.es2021 }
         },
-
-        // Node defaults (services, scripts)
-        {
-            files: [
-                "apps/**/src/**/*.{ts,tsx,js,jsx}",
-                "packages/**/src/**/*.{ts,tsx,js,jsx}",
-                "scripts/**/*.{ts,js}"
-            ],
-            languageOptions: {
-                globals: { ...globals.node }
-            }
-        },
-
-        // Browser defaults (web apps)
-        {
-            files: [
-                "apps/**/{app,pages,components,src}/**/*.{ts,tsx,js,jsx}"
-            ],
-            languageOptions: {
-                globals: { ...globals.browser }
-            },
-            rules: {
-                "no-alert": "warn"
-            }
-        },
-
-        // Tests
-        {
-            files: ["**/*.{test,spec}.{ts,tsx,js,jsx}"],
-            rules: {
-                "no-console": "off"
-            }
+        plugins: { '@typescript-eslint': ts.plugin },
+        rules: {
+            '@typescript-eslint/await-thenable': 'error',
+            '@typescript-eslint/no-floating-promises': 'warn',
+            '@typescript-eslint/no-misused-promises': ['warn', { checksVoidReturn: false }],
+            '@typescript-eslint/consistent-type-imports': 'warn',
+            '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }]
         }
-    ];
+    };
 }
+
+/**
+ * Create a monorepo-friendly ESLint config.
+ * @param {Object} options
+ * @param {boolean} [options.typed=true] - enable type-aware rules
+ * @param {string[]} [options.projectGlobs] - tsconfig paths for typed lint
+ * @param {boolean} [options.withPrettier=true] - include eslint-config-prettier if available
+ */
+export function createConfig({
+                                 typed = true,
+                                 projectGlobs = [
+                                     'tsconfig.eslint.json',
+                                     'apps/*/tsconfig.eslint.json',
+                                     'packages/*/tsconfig.eslint.json'
+                                 ],
+                                 withPrettier = true
+                             } = {}) {
+    const config = [
+        // 1) Global ignores (and skip linting config files themselves)
+        { ignores: ['**/dist/**', '**/node_modules/**', '**/*.d.ts', '**/generated/**', 'eslint.config.*'] },
+
+        // 2) JS files
+        {
+            files: ['**/*.js', '**/*.cjs', '**/*.mjs'],
+            ...js.configs.recommended
+        },
+
+        // 3) TS baseline (non-typed, fast)
+        ...ts.configs.recommended
+    ];
+
+    // 4) TS typed rules (needs tsconfig.eslint.json in each workspace)
+    if (typed) config.push(typedTsBlock(projectGlobs));
+
+    // 5) Disable stylistic rules if Prettier is present
+    if (withPrettier && eslintConfigPrettier) config.push(eslintConfigPrettier);
+
+    return config;
+}
+
+export default createConfig();
