@@ -37,3 +37,6 @@ lerna-debug.log*
 /coverage-e2e/
 
 /generated/prisma
+
+# prisma
+prisma/*-lock.toml
