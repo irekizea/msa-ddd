@@ -11,15 +11,15 @@ import {
   CREATE_ORDER_USECASE,
   CreateOrderCommand,
   CreateOrderUseCase,
-} from '../create-order.usecase';
+} from '../../../../application/ports/inbound/create-order.usecase';
 import {
   CANCEL_ORDER_USECASE,
   CancelOrderUseCase,
-} from '../cancel-order.usecase';
+} from '../../../../application/ports/inbound/cancel-order.usecase';
 import {
   GET_ORDER_DETAIL_USECASE,
   GetOrderDetailUseCase,
-} from '../get-order-detail.query';
+} from '../../../../application/ports/inbound/get-order-detail.query';
 
 @Controller('orders')
 export class OrderController {

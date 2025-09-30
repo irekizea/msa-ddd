@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { OrderController } from './application/ports/inbound/http/order-controller';
+import { OrderController } from './infrastructure/adapters/inbound/http/order-controller';
 import { CREATE_ORDER_USECASE } from './application/ports/inbound/create-order.usecase';
 import { CreateOrderService } from './application/use-cases/create-order.service';
 import { CANCEL_ORDER_USECASE } from './application/ports/inbound/cancel-order.usecase';
